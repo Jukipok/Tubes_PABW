@@ -1,0 +1,202 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package "Models" {
+    class M_User {
+        +id_user
+        +name
+        +email
+        +password
+        +role
+        +created_at
+        +updated_at
+    }
+
+    class M_Pelanggan {
+        +id_pelanggan
+        +id_user
+        --
+        +user()
+        +pemesanan()
+    }
+
+    class M_PemilikRental {
+        +id_pemilik_rental
+        +id_user
+        +lokasi_rental
+        --
+        +user()
+    }
+
+    class M_AdminSewa {
+        +id_admin_sewa
+        +id_user
+        --
+        +user()
+    }
+
+    class M_KendaraanListrik {
+        +id_kendaraan
+        +merk_kendaraan
+        +tipe_kendaraan
+        +plat_nomor
+        +harga_perjam
+        +status_ketersediaan
+        +gambar_kendaraan
+        --
+        +pemesanan()
+    }
+
+    class M_Pemesanan {
+        +id_pemesanan
+        +id_pelanggan
+        +id_kendaraan
+        +tanggal_sewa
+        +tanggal_kembali
+        +durasi_sewa
+        +total_biaya
+        +status_sewa
+        --
+        +pelanggan()
+        +kendaraan()
+        +pembayaran()
+        +ulasan()
+        +denda()
+        +laporan()
+    }
+
+    class M_Pembayaran {
+        +id_pembayaran
+        +id_pemesanan
+        +metode_pembayaran
+        +jumlah_bayar
+        +tanggal_bayar
+        +bukti_transfer
+        +status_bayar
+        --
+        +pemesanan()
+    }
+
+    class M_Ulasan {
+        +id_ulasan
+        +id_pemesanan
+        +rating
+        +komentar
+        --
+        +pemesanan()
+    }
+
+    class M_Denda {
+        +id_denda
+        +id_pemesanan
+        +jenis_denda
+        +total_denda
+        +status_denda
+        --
+        +pemesanan()
+    }
+
+    class M_Laporan {
+        +id_laporan
+        +id_pemesanan
+        +jenis_laporan
+        +deskripsi_masalah
+        +foto_bukti
+        +status_laporan
+        --
+        +pemesanan()
+    }
+}
+
+package "Controllers" {
+    class C_Auth {
+        +viewLogin()
+        +login()
+        +viewRegister()
+        +register()
+        +logout()
+    }
+
+    class C_Kendaraan {
+        +index()
+        +manage()
+        +create()
+        +store()
+        +edit()
+        +update()
+        +destroy()
+    }
+
+    class C_Transaksi {
+        +create()
+        +store()
+        +createPayment()
+        +processPayment()
+        +history()
+        +returnItem()
+        +storeReview()
+        +hitungDenda()
+    }
+
+    class C_Laporan {
+        +create()
+        +store()
+    }
+
+    class C_Xendit {
+        +createInvoice()
+        +success()
+    }
+}
+
+package "Views" <<Folder>> {
+    class "auth.login" as v_login <<View>>
+    class "auth.register" as v_register <<View>>
+    class "kendaraan.katalog" as v_katalog <<View>>
+    class "kendaraan.manage" as v_manage <<View>>
+    class "transaksi.booking" as v_booking <<View>>
+    class "transaksi.payment" as v_payment <<View>>
+    class "transaksi.history" as v_history <<View>>
+    class "laporan.create" as v_laporan <<View>>
+}
+
+' Relationships
+
+' Model Relations
+M_User "1" -- "0..1" M_Pelanggan
+M_User "1" -- "0..1" M_PemilikRental
+M_User "1" -- "0..1" M_AdminSewa
+
+M_Pelanggan "1" -- "0..*" M_Pemesanan
+M_KendaraanListrik "1" -- "0..*" M_Pemesanan
+
+M_Pemesanan "1" -- "0..1" M_Pembayaran
+M_Pemesanan "1" -- "0..1" M_Ulasan
+M_Pemesanan "1" -- "0..1" M_Denda
+M_Pemesanan "1" -- "0..*" M_Laporan
+
+' Controller to Model
+C_Auth ..> M_User
+C_Kendaraan ..> M_KendaraanListrik
+C_Transaksi ..> M_Pemesanan
+C_Transaksi ..> M_Pembayaran
+C_Transaksi ..> M_Ulasan
+C_Transaksi ..> M_Denda
+C_Laporan ..> M_Laporan
+C_Laporan ..> M_Pemesanan
+
+' Controller to View
+C_Auth ..> v_login : returns
+C_Auth ..> v_register : returns
+
+C_Kendaraan ..> v_katalog : returns
+C_Kendaraan ..> v_manage : returns
+
+C_Transaksi ..> v_booking : returns
+C_Transaksi ..> v_payment : returns
+C_Transaksi ..> v_history : returns
+v_history ..> C_Transaksi : "Return Action / Review / Fine"
+
+C_Laporan ..> v_laporan : returns
+
+@enduml

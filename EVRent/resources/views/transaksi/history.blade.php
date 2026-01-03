@@ -74,9 +74,13 @@
 
                             <!-- Desktop View Details -->
                             <div class="hidden sm:flex ml-2 flex-shrink-0">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $currentClass }}">
                                     {{ $currentLabel }}
                                 </span>
+                                @if($pesanan->denda)
+                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Denda: Rp {{ number_format($pesanan->denda->total_denda) }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
                         
@@ -99,14 +103,27 @@
                                     <a href="{{ route('pembayaran.create', $pesanan->id_pemesanan) }}" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200">
                                         Bayar &rarr;
                                     </a>
+                                @elseif($pesanan->status_sewa == 'dibayar' || $pesanan->status_sewa == 'berlangsung')
+                                    <form action="{{ route('booking.return', $pesanan->id_pemesanan) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin mengembalikan kendaraan ini?')">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-purple-700 bg-purple-100 hover:bg-purple-200">
+                                            Kembalikan
+                                        </button>
+                                    </form>
                                 @elseif($pesanan->status_sewa == 'selesai')
-                                    @if(!$hasReview)
+                                    @if(!$pesanan->ulasan)
                                         <button onclick="openReviewModal({{ $pesanan->id_pemesanan }})" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200">
                                             Beri Ulasan
                                         </button>
                                     @else
                                         <span class="text-green-600 text-sm font-medium">✔️ Sudah Diulas</span>
                                     @endif
+                                @endif
+                                
+                                @if(in_array($pesanan->status_sewa, ['dibayar', 'berlangsung', 'selesai']))
+                                    <a href="{{ route('laporan.create', $pesanan->id_pemesanan) }}" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 ml-2">
+                                        ! Lapor Masalah
+                                    </a>
                                 @endif
                             </div>
                         </div>

@@ -11,4 +11,9 @@ class M_Laporan extends Model
     protected $table = 'laporans';
     protected $primaryKey = 'id_laporan';
     protected $guarded = ['id_laporan'];
+
+    public function pemesanan()
+    {
+        return $this->belongsTo(M_Pemesanan::class, 'id_pemesanan');
+    }
 }
