@@ -38,30 +38,30 @@ class DatabaseSeeder extends Seeder
                 'username' => 'pemilik1',
                 'email' => 'owner1@rental.com',
                 'phone' => '08123456701',
-                'rental_name' => 'Sukabura Rent Point',
-                'location' => 'Sukabura, Dayeuhkolot',
-                'lat' => -6.9733, 
-                'lng' => 107.6304 
+                'rental_name' => 'Sukabirus Rent Point',
+                'location' => 'Jl. Sukabirus',
+                'lat' => -6.9758889, 
+                'lng' => 107.6330
             ],
             [
                 'name' => 'Siti Aminah',
                 'username' => 'pemilik2',
                 'email' => 'owner2@rental.com',
                 'phone' => '08123456702',
-                'rental_name' => 'PBB Eco Trans',
-                'location' => 'Jl. Telekomunikasi, Terusan Buah Batu',
-                'lat' => -6.9760, 
-                'lng' => 107.6320 
+                'rental_name' => 'BBC Eco TransRent',
+                'location' => 'Jl. Babakan Ciamis',
+                'lat' => -6.9721389, 
+                'lng' => 107.6351
             ],
             [
                 'name' => 'Ahmad Hidayat',
                 'username' => 'pemilik3',
                 'email' => 'owner3@rental.com',
                 'phone' => '08123456703',
-                'rental_name' => 'Bojongsoang Electric',
-                'location' => 'Bojongsoang, Kab. Bandung',
-                'lat' => -6.9820, 
-                'lng' => 107.6315 
+                'rental_name' => 'Sukapura Electric',
+                'location' => 'Jl. Sukapura',
+                'lat' => -6.9715, 
+                'lng' => 107.6335
             ]
         ];
 
@@ -93,6 +93,30 @@ class DatabaseSeeder extends Seeder
             );
             $ownerIds[] = $owner->id_pemilik_rental;
         }
+
+        // 2. Admin Sewa
+        $adminSewaUser = \App\Models\M_User::firstOrCreate(
+            ['email' => 'admin_sewa@evrent.com'],
+            [
+                'name' => 'Rudi Admin Sewa',
+                'username' => 'admin_sewa',
+                'nama_lengkap' => 'Rudi Admin Sewa',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'role' => 'admin_sewa',
+                'no_telepon' => '081234567891',
+                'alamat' => 'Kantor Cabang',
+                'jenis_kelamin' => 'L'
+            ]
+        );
+        
+        // Assign admin sewa to first pemilik rental
+        \App\Models\M_AdminSewa::firstOrCreate(
+            ['id_user' => $adminSewaUser->id],
+            [
+                'id_pemilik_rental' => $ownerIds[0],
+                'lokasi_kantor' => 'Sukabura, Dayeuhkolot'
+            ]
+        );
 
         // 3. Pelanggan
         $pelanggan = \App\Models\M_User::firstOrCreate(

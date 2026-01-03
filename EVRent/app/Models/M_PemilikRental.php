@@ -16,4 +16,9 @@ class M_PemilikRental extends Model
     {
         return $this->belongsTo(M_User::class, 'id_user');
     }
+
+    public function ulasans()
+    {
+        return $this->hasMany(M_Ulasan::class, 'id_pemilik_rental');
+    }
 }

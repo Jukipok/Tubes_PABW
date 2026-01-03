@@ -10,6 +10,7 @@ use App\Models\M_Pelanggan;
 use App\Models\M_Denda;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+// imported models
 
 class C_Transaksi extends Controller
 {
@@ -18,12 +19,7 @@ class C_Transaksi extends Controller
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id_kendaraan);
         
-        // Fetch reviews
-        $ulasans = \App\Models\M_Ulasan::whereHas('pemesanan', function($q) use ($id_kendaraan) {
-            $q->where('id_kendaraan', $id_kendaraan);
-        })->with('pemesanan.pelanggan.user')->orderBy('created_at', 'desc')->get();
-
-        return view('transaksi.booking', compact('kendaraan', 'ulasans'));
+        return view('transaksi.booking', compact('kendaraan'));
     }
 
     // Process Booking (Simpan Pemesanan)
@@ -107,15 +103,41 @@ class C_Transaksi extends Controller
             return redirect()->route('home')->with('error', 'Akun Anda bukan akun pelanggan.');
         }
 
-        $pemesanans = M_Pemesanan::join('kendaraan_listriks', 'pemesanans.id_kendaraan', '=', 'kendaraan_listriks.id_kendaraan')
-            ->where('pemesanans.id_pelanggan', $pelanggan->id_pelanggan)
-            ->where('pemesanans.id_pelanggan', $pelanggan->id_pelanggan)
-            ->with(['ulasan', 'denda']) // Eager load ulasan and denda
-            ->select('pemesanans.*', 'kendaraan_listriks.merk_kendaraan', 'kendaraan_listriks.tipe_kendaraan', 'kendaraan_listriks.gambar_kendaraan', 'kendaraan_listriks.plat_nomor')
-            ->orderBy('pemesanans.created_at', 'desc')
+        $pemesanans = M_Pemesanan::with(['kendaraan', 'denda'])
+            ->where('id_pelanggan', $pelanggan->id_pelanggan)
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return view('transaksi.history', compact('pemesanans'));
+    }
+
+    // Admin: list pending payments
+    public function adminPayments()
+    {
+        $payments = M_Pembayaran::with(['pemesanan.pelanggan.user', 'pemesanan.kendaraan'])
+            ->whereIn('status_bayar', ['pending', 'menunggu_verifikasi'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.pembayaran.index', compact('payments'));
+    }
+
+    // Admin: verify a payment
+    public function verifyPayment(Request $request, $id_pembayaran)
+    {
+        $payment = M_Pembayaran::findOrFail($id_pembayaran);
+
+        // Simple verification logic: mark payment as verified and update order status
+        $payment->update([
+            'status_bayar' => 'terverifikasi'
+        ]);
+
+        // Update pemesanan status to dibayar
+        if ($payment->pemesanan) {
+            $payment->pemesanan->update(['status_sewa' => 'dibayar']);
+        }
+
+        return redirect()->route('admin.pembayaran.index')->with('success', 'Pembayaran telah diverifikasi.');
     }
 
     // Return Vehicle (Finish Rental)
@@ -178,6 +200,7 @@ class C_Transaksi extends Controller
     {
         $request->validate([
             'id_pemesanan' => 'required|exists:pemesanans,id_pemesanan',
+            'id_pemilik_rental' => 'required|exists:pemilik_rentals,id_pemilik_rental',
             'rating' => 'required|integer|min:1|max:5',
             'komentar' => 'required|string|max:500',
         ]);
@@ -190,8 +213,18 @@ class C_Transaksi extends Controller
             return back()->with('error', 'Unauthorized.');
         }
 
+        // Check if customer already reviewed this rental
+        $existingReview = \App\Models\M_Ulasan::where('id_pemilik_rental', $request->id_pemilik_rental)
+            ->where('id_pelanggan', $pelanggan->id_pelanggan)
+            ->first();
+
+        if ($existingReview) {
+            return back()->with('error', 'Anda sudah memberikan ulasan untuk rental ini.');
+        }
+
         \App\Models\M_Ulasan::create([
-            'id_pemesanan' => $request->id_pemesanan,
+            'id_pemilik_rental' => $request->id_pemilik_rental,
+            'id_pelanggan' => $pelanggan->id_pelanggan,
             'rating' => $request->rating,
             'komentar' => $request->komentar,
         ]);
@@ -199,8 +232,33 @@ class C_Transaksi extends Controller
         return back()->with('success', 'Terima kasih atas ulasan Anda!');
     }
 
-    // Calculate Fine (Simulation)
-    public function hitungDenda($id_pemesanan)
+    // Delete Booking
+    public function deleteBooking($id_pemesanan)
+    {
+        $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
+        
+        // Ensure user owns this booking
+        $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
+        if ($pemesanan->id_pelanggan !== $pelanggan->id_pelanggan) {
+            return back()->with('error', 'Unauthorized.');
+        }
+
+        // Only allow delete if status is menunggu_pembayaran or selesai
+        if (!in_array($pemesanan->status_sewa, ['menunggu_pembayaran', 'selesai'])) {
+            return back()->with('error', 'Pesanan ini tidak dapat dihapus.');
+        }
+
+        // Update kendaraan status kembali ke tersedia jika masih disewa
+        if ($pemesanan->kendaraan && $pemesanan->status_sewa == 'menunggu_pembayaran') {
+            $pemesanan->kendaraan->update(['status_ketersediaan' => 'tersedia']);
+        }
+
+        $pemesanan->delete();
+
+        return redirect()->route('my_bookings')->with('success', 'Pesanan berhasil dihapus.');
+    }
+
+    public function calculateFine($id_pemesanan)
     {
         // Logic to calculate fine if returned late
         // For now, just a view or json

@@ -30,6 +30,7 @@ return new class extends Migration
         Schema::create('admin_sewas', function (Blueprint $table) {
             $table->id('id_admin_sewa');
             $table->foreignId('id_user')->constrained('users')->onDelete('cascade');
+            $table->foreignId('id_pemilik_rental')->constrained('pemilik_rentals', 'id_pemilik_rental')->onDelete('cascade');
             $table->string('lokasi_kantor');
             $table->timestamps();
         });

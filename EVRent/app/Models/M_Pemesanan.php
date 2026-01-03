@@ -27,12 +27,6 @@ class M_Pemesanan extends Model
     {
         return $this->hasOne(M_Pembayaran::class, 'id_pemesanan');
     }
-    
-    public function ulasan()
-    {
-        return $this->hasOne(M_Ulasan::class, 'id_pemesanan');
-    }
-
     public function denda()
     {
         return $this->hasOne(M_Denda::class, 'id_pemesanan');
