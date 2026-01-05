@@ -21,4 +21,9 @@ class M_Pelanggan extends Model
     {
         return $this->hasMany(M_Pemesanan::class, 'id_pelanggan');
     }
+
+    public function ulasans()
+    {
+        return $this->hasMany(M_Ulasan::class, 'id_pelanggan');
+    }
 }

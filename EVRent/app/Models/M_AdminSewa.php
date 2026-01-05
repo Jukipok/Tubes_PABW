@@ -16,4 +16,9 @@ class M_AdminSewa extends Model
     {
         return $this->belongsTo(M_User::class, 'id_user');
     }
+
+    public function pemilikRental()
+    {
+        return $this->belongsTo(M_PemilikRental::class, 'id_pemilik_rental');
+    }
 }

@@ -12,8 +12,13 @@ class M_Ulasan extends Model
     protected $primaryKey = 'id_ulasan';
     protected $guarded = ['id_ulasan'];
 
-    public function pemesanan()
+    public function pemilikRental()
     {
-        return $this->belongsTo(M_Pemesanan::class, 'id_pemesanan');
+        return $this->belongsTo(M_PemilikRental::class, 'id_pemilik_rental');
+    }
+
+    public function pelanggan()
+    {
+        return $this->belongsTo(M_Pelanggan::class, 'id_pelanggan');
     }
 }

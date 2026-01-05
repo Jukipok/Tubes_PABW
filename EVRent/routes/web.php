@@ -47,6 +47,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-bookings', [C_Transaksi::class, 'history'])->name('my_bookings');
         Route::post('/ulasan', [C_Transaksi::class, 'storeReview'])->name('ulasan.store');
         Route::post('/booking/{id}/return', [C_Transaksi::class, 'returnItem'])->name('booking.return');
+        Route::delete('/booking/{id}', [C_Transaksi::class, 'deleteBooking'])->name('booking.delete');
         Route::get('/lokasi', function () { return view('kendaraan.lokasi'); })->name('lokasi');
         
     // Laporan / Complaint Routes
@@ -80,6 +81,9 @@ Route::middleware(['auth'])->group(function () {
     // Admin Routes
     Route::middleware(['role:admin_evrent,admin_sewa'])->group(function () {
          Route::get('/admin/dashboard', function () { return view('dashboard.admin'); })->name('admin.dashboard');
+            // Payment verification
+            Route::get('/admin/pembayaran', [C_Transaksi::class, 'adminPayments'])->name('admin.pembayaran.index');
+            Route::post('/admin/pembayaran/{id}/verify', [C_Transaksi::class, 'verifyPayment'])->name('admin.pembayaran.verify');
     });
 
 });

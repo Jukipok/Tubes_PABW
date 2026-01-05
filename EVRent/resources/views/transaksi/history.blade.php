@@ -111,8 +111,14 @@
                                         </button>
                                     </form>
                                 @elseif($pesanan->status_sewa == 'selesai')
-                                    @if(!$pesanan->ulasan)
-                                        <button onclick="openReviewModal({{ $pesanan->id_pemesanan }})" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200">
+                                    @php
+                                        $pelangganId = Auth::user()->pelanggan->id_pelanggan ?? null;
+                                        $reviewExists = \App\Models\M_Ulasan::where('id_pemilik_rental', $pesanan->kendaraan->id_pemilik_rental ?? null)
+                                            ->where('id_pelanggan', $pelangganId)
+                                            ->exists();
+                                    @endphp
+                                    @if(!$reviewExists && $pesanan->kendaraan)
+                                        <button onclick="openReviewModal({{ $pesanan->id_pemesanan }}, {{ $pesanan->kendaraan->id_pemilik_rental }})" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200">
                                             Beri Ulasan
                                         </button>
                                     @else
@@ -124,6 +130,16 @@
                                     <a href="{{ route('laporan.create', $pesanan->id_pemesanan) }}" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 ml-2">
                                         ! Lapor Masalah
                                     </a>
+                                @endif
+                                
+                                @if($pesanan->status_sewa == 'menunggu_pembayaran' || $pesanan->status_sewa == 'selesai')
+                                    <form action="{{ route('booking.delete', $pesanan->id_pemesanan) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pesanan ini? Tindakan ini tidak dapat dibatalkan.')" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded text-gray-700 bg-gray-100 hover:bg-gray-200 ml-2">
+                                            Hapus Pesanan
+                                        </button>
+                                    </form>
                                 @endif
                             </div>
                         </div>
@@ -144,6 +160,7 @@
             <form action="{{ route('ulasan.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="id_pemesanan" id="modalBookingId">
+                <input type="hidden" name="id_pemilik_rental" id="modalRentalId">
                 <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div class="sm:flex sm:items-start">
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
@@ -181,8 +198,9 @@
 </div>
 
 <script>
-    function openReviewModal(id) {
-        document.getElementById('modalBookingId').value = id;
+    function openReviewModal(bookingId, rentalId) {
+        document.getElementById('modalBookingId').value = bookingId;
+        document.getElementById('modalRentalId').value = rentalId;
         document.getElementById('reviewModal').classList.remove('hidden');
     }
     function closeReviewModal() {

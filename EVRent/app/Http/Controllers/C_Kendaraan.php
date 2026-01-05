@@ -40,21 +40,9 @@ class C_Kendaraan extends Controller
             ->whereNotNull('longitude')
             ->get()
             ->map(function($rental) {
-                // Calculate Average Rating
-                // Rental -> Kendaraan -> Pemesanan -> Ulasan
-                $avgRating = 0;
-                $reviewCount = 0;
-                
-                $vehicleIds = \App\Models\M_KendaraanListrik::where('id_pemilik_rental', $rental->id_pemilik_rental)->pluck('id_kendaraan');
-                
-                if ($vehicleIds->isNotEmpty()) {
-                    $orderIds = \App\Models\M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)->pluck('id_pemesanan');
-                    
-                    if ($orderIds->isNotEmpty()) {
-                        $avgRating = \App\Models\M_Ulasan::whereIn('id_pemesanan', $orderIds)->avg('rating');
-                        $reviewCount = \App\Models\M_Ulasan::whereIn('id_pemesanan', $orderIds)->count();
-                    }
-                }
+                // Calculate Average Rating from Ulasan (now linked to PemilikRental)
+                $avgRating = \App\Models\M_Ulasan::where('id_pemilik_rental', $rental->id_pemilik_rental)->avg('rating');
+                $reviewCount = \App\Models\M_Ulasan::where('id_pemilik_rental', $rental->id_pemilik_rental)->count();
 
                 return [
                     'id' => $rental->id_pemilik_rental,

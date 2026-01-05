@@ -165,7 +165,7 @@
                         <h3 class="font-bold text-gray-900 text-sm mb-1">${loc.name}</h3>
                         ${ratingDisplay}
                         <p class="text-xs text-gray-500 mb-3">${loc.address}</p>
-                        <a href="?rental_id=${loc.id}" class="block w-full text-center bg-blue-600 text-white text-xs font-bold py-2 rounded hover:bg-blue-700 transition">
+                        <a href="?rental_id=${loc.id}" style="display: block; width: 100%; text-align: center; background-color: #2563EB; color: #FFFFFF; font-size: 12px; font-weight: bold; padding: 8px 0; border-radius: 4px; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1d4ed8'" onmouseout="this.style.backgroundColor='#2563EB'">
                             Lihat Kendaraan
                         </a>
                     </div>
@@ -174,7 +174,7 @@
                 marker.bindPopup(popupContent);
                 
                 marker.on('click', function() {
-                    map.flyTo([loc.lat, loc.lng], 14);
+                    map.flyTo([loc.lat, loc.lng], 17);
                 });
             });
 
