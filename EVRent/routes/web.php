@@ -5,6 +5,7 @@ use App\Http\Controllers\C_Auth;
 use App\Http\Controllers\C_Kendaraan;
 use App\Http\Controllers\C_Transaksi;
 use App\Http\Controllers\C_Xendit;
+
 use App\Http\Controllers\C_Laporan;
 
 /*
@@ -48,14 +49,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/booking/{id}/return', [C_Transaksi::class, 'returnItem'])->name('booking.return');
         Route::get('/lokasi', function () { return view('kendaraan.lokasi'); })->name('lokasi');
         
-        // Laporan / Complaint Routes
-        Route::get('/booking/{id}/lapor', [C_Laporan::class, 'create'])->name('laporan.create');
-        Route::post('/laporan', [C_Laporan::class, 'store'])->name('laporan.store');
+    // Laporan / Complaint Routes
+    Route::get('/booking/{id}/lapor', [C_Laporan::class, 'create'])->name('laporan.create');
+    Route::post('/laporan', [C_Laporan::class, 'store'])->name('laporan.store');
 
-        // Xendit Payment Routes (Demo)
-        Route::get('/payment/{id}/create', [C_Xendit::class, 'createInvoice'])->name('payment.create');
-        Route::get('/payment/success', [C_Xendit::class, 'success'])->name('payment.success');
-    });
+    // Xendit Payment Routes
+    Route::get('/payment/{id}/create', [C_Xendit::class, 'createInvoice'])->name('payment.create');
+    Route::get('/payment/success', [C_Xendit::class, 'success'])->name('payment.success');
+    Route::post('/payment/callback', [C_Xendit::class, 'callback'])->name('payment.callback'); // Added callback route
+});
 
     // Admin & Owner Routes (Shared for Manage Kendaraan? Or just Owner? Diagram says both use same Models, maybe Admin manages too?)
     // UML: Admin Sewa & Pemilik Rental both seem to share access or separated. 

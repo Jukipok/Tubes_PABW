@@ -61,8 +61,8 @@ class C_Transaksi extends Controller
         // Update Vehicle Status
         $kendaraan->update(['status_ketersediaan' => 'disewa']);
 
-        // Redirect directly to Manual Payment (Upload Proof)
-        return redirect()->route('pembayaran.create', ['id' => $pemesanan->id_pemesanan]);
+        // Redirect directly to Xendit Payment
+        return redirect()->route('payment.create', ['id' => $pemesanan->id_pemesanan]);
     }
 
     // Show Payment Form
