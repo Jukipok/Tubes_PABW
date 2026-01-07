@@ -113,7 +113,7 @@
                                 @elseif($pesanan->status_sewa == 'selesai')
                                     @php
                                         $pelangganId = Auth::user()->pelanggan->id_pelanggan ?? null;
-                                        $reviewExists = \App\Models\M_Ulasan::where('id_pemilik_rental', $pesanan->kendaraan->id_pemilik_rental ?? null)
+                                        $reviewExists = \App\Modules\Laporan\Models\M_Ulasan::where('id_pemilik_rental', $pesanan->kendaraan->id_pemilik_rental ?? null)
                                             ->where('id_pelanggan', $pelangganId)
                                             ->exists();
                                     @endphp

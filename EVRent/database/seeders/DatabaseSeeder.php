@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Admin EVRent
-        \App\Models\M_User::firstOrCreate(
+        \App\Modules\Auth\Models\M_User::firstOrCreate(
             ['email' => 'admin@evrent.com'],
             [
                 'name' => 'Admin EVRent',
@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
         $ownerIds = [];
 
         foreach ($rentals as $rent) {
-            $user = \App\Models\M_User::firstOrCreate(
+            $user = \App\Modules\Auth\Models\M_User::firstOrCreate(
                 ['email' => $rent['email']],
                 [
                     'name' => $rent['name'],
@@ -82,7 +82,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
 
-            $owner = \App\Models\M_PemilikRental::firstOrCreate(
+            $owner = \App\Modules\Auth\Models\M_PemilikRental::firstOrCreate(
                 ['id_user' => $user->id],
                 [
                     'lokasi_rental' => $rent['location'],
@@ -95,7 +95,7 @@ class DatabaseSeeder extends Seeder
         }
 
         // 2. Admin Sewa
-        $adminSewaUser = \App\Models\M_User::firstOrCreate(
+        $adminSewaUser = \App\Modules\Auth\Models\M_User::firstOrCreate(
             ['email' => 'admin_sewa@evrent.com'],
             [
                 'name' => 'Rudi Admin Sewa',
@@ -110,7 +110,7 @@ class DatabaseSeeder extends Seeder
         );
         
         // Assign admin sewa to first pemilik rental
-        \App\Models\M_AdminSewa::firstOrCreate(
+        \App\Modules\Auth\Models\M_AdminSewa::firstOrCreate(
             ['id_user' => $adminSewaUser->id],
             [
                 'id_pemilik_rental' => $ownerIds[0],
@@ -119,7 +119,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // 3. Pelanggan
-        $pelanggan = \App\Models\M_User::firstOrCreate(
+        $pelanggan = \App\Modules\Auth\Models\M_User::firstOrCreate(
             ['email' => 'ani@gmail.com'],
             [
                 'name' => 'Ani Pelanggan',
@@ -132,7 +132,7 @@ class DatabaseSeeder extends Seeder
                 'jenis_kelamin' => 'P'
             ]
         );
-        \App\Models\M_Pelanggan::firstOrCreate(
+        \App\Modules\Auth\Models\M_Pelanggan::firstOrCreate(
             ['id_user' => $pelanggan->id]
         );
         
@@ -150,7 +150,7 @@ class DatabaseSeeder extends Seeder
             $car = $cars[array_rand($cars)];
             $ownerId = $ownerIds[array_rand($ownerIds)];
 
-            \App\Models\M_KendaraanListrik::create([
+            \App\Modules\Kendaraan\Models\M_KendaraanListrik::create([
                 'merk_kendaraan' => $car[0],
                 'tipe_kendaraan' => $car[1],
                 'jenis' => 'mobil',
@@ -174,7 +174,7 @@ class DatabaseSeeder extends Seeder
             $motor = $motors[array_rand($motors)];
             $ownerId = $ownerIds[array_rand($ownerIds)];
 
-            \App\Models\M_KendaraanListrik::create([
+            \App\Modules\Kendaraan\Models\M_KendaraanListrik::create([
                 'merk_kendaraan' => $motor[0],
                 'tipe_kendaraan' => $motor[1],
                 'jenis' => 'motor',
@@ -198,7 +198,7 @@ class DatabaseSeeder extends Seeder
             $bike = $bikes[array_rand($bikes)];
             $ownerId = $ownerIds[array_rand($ownerIds)];
 
-            \App\Models\M_KendaraanListrik::create([
+            \App\Modules\Kendaraan\Models\M_KendaraanListrik::create([
                 'merk_kendaraan' => $bike[0],
                 'tipe_kendaraan' => $bike[1],
                 'jenis' => 'sepeda',

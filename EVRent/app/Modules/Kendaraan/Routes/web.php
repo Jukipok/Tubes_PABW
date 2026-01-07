@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Modules\Kendaraan\Controllers\C_Kendaraan;
+
+// Public Home
+Route::get('/', [C_Kendaraan::class, 'index'])->name('home');
+
+Route::middleware(['auth'])->group(function () {
+
+    // Pelanggan Routes
+    Route::middleware(['role:pelanggan'])->group(function () {
+        Route::get('/katalog', [C_Kendaraan::class, 'index'])->name('katalog');
+        Route::get('/lokasi', function () { return view('kendaraan.lokasi'); })->name('lokasi');
+    });
+
+    // Admin & Owner Routes
+    Route::middleware(['role:pemilik_rental,admin_evrent'])->group(function () {
+        Route::get('/manage/kendaraan', [C_Kendaraan::class, 'manage'])->name('manage.kendaraan');
+        Route::get('/manage/kendaraan/create', [C_Kendaraan::class, 'create'])->name('kendaraan.create');
+        Route::post('/manage/kendaraan', [C_Kendaraan::class, 'store'])->name('kendaraan.store');
+        Route::get('/manage/kendaraan/{id}/edit', [C_Kendaraan::class, 'edit'])->name('kendaraan.edit');
+        Route::put('/manage/kendaraan/{id}', [C_Kendaraan::class, 'update'])->name('kendaraan.update');
+        Route::delete('/manage/kendaraan/{id}', [C_Kendaraan::class, 'destroy'])->name('kendaraan.destroy');
+        Route::get('/owner/dashboard', function () { return view('dashboard.owner'); })->name('owner.dashboard'); 
+    });
+});

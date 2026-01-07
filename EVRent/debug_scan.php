@@ -5,7 +5,7 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 try {
-    $users = \App\Models\M_User::all();
+    $users = \App\Modules\Auth\Models\M_User::all();
     echo json_encode($users->map(function($u) {
         return [
             'id' => $u->id, 

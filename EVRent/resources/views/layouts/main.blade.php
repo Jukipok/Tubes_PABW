@@ -40,13 +40,9 @@
                                 <a href="{{ route('katalog') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Katalog</a>
                                 <a href="{{ route('my_bookings') }}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Pesanan Saya</a>
                             @endif
-                            <div class="border-l pl-4 flex items-center gap-4">
-                                <span class="text-sm font-semibold text-gray-800">{{ Auth::user()->username }} ({{ Auth::user()->role }})</span>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="text-red-500 hover:text-red-700 font-medium text-sm">Logout</button>
-                                </form>
-                            </div>
+                            <a href="{{ route('profile.edit') }}" class="border-l pl-4 flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition group">
+                                <span class="text-sm font-semibold text-gray-800 group-hover:text-blue-600">{{ Auth::user()->username }} ({{ Auth::user()->role }})</span>
+                            </a>
                         </div>
                     @else
                         <div class="flex space-x-4">

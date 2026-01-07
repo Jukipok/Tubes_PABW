@@ -6,23 +6,33 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h1 class="text-3xl font-bold text-gray-900 mb-8">Admin Dashboard</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-500 truncate">Total Pengguna</dt>
-                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ \App\Models\M_User::count() }}</dd>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ \App\Modules\Auth\Models\M_User::where('role', 'pelanggan')->count() }}</dd>
             </div>
         </div>
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
                 <dt class="text-sm font-medium text-gray-500 truncate">Total Kendaraan</dt>
-                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ \App\Models\M_KendaraanListrik::count() }}</dd>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ \App\Modules\Kendaraan\Models\M_KendaraanListrik::count() }}</dd>
             </div>
         </div>
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="px-4 py-5 sm:p-6">
-                <dt class="text-sm font-medium text-gray-500 truncate">Pemesanan Aktif</dt>
-                <dd class="mt-1 text-3xl font-semibold text-gray-900">{{ \App\Models\M_Pemesanan::where('status_sewa', 'berlangsung')->count() }}</dd>
+                <dt class="text-sm font-medium text-gray-500 truncate">Total Pendapatan</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                    Rp {{ number_format(\App\Modules\Pembayaran\Models\M_XenditPayment::where('status', 'PAID')->sum('amount'), 0, ',', '.') }}
+                </dd>
+            </div>
+        </div>
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="px-4 py-5 sm:p-6">
+                <dt class="text-sm font-medium text-gray-500 truncate">Total Pengeluaran</dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                    Rp {{ number_format(\App\Modules\Pembayaran\Models\M_XenditPayment::where('status', 'PAID')->count() * 4500, 0, ',', '.') }} <span class="text-xs text-gray-400 font-normal">(Est. Fee)</span>
+                </dd>
             </div>
         </div>
     </div>
@@ -37,13 +47,13 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 font-medium">
-                        Verifikasi Pembayaran (Coming Soon)
+                    <a href="{{ route('admin.ulasan.index') }}" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 font-medium">
+                        Lihat Ulasan
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 font-medium">
-                        Laporan Penyewaan
+                    <a href="{{ route('admin.laporan.xendit') }}" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 font-medium">
+                        Laporan Transaksi Xendit
                     </a>
                 </li>
             </ul>
