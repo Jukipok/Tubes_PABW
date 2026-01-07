@@ -15,4 +15,9 @@ class M_KendaraanListrik extends Model
     protected $casts = [
         'gambar_kendaraan' => 'array', // If multiple images
     ];
+
+    public function pemilik()
+    {
+        return $this->belongsTo(M_PemilikRental::class, 'id_pemilik_rental');
+    }
 }

@@ -87,6 +87,17 @@ class C_Xendit extends Controller
                 'tanggal_bayar' => now(), // Tanggal generate invoice
             ]);
 
+            // [NEW] Simpan detail teknis ke tabel khusus Xendit untuk laporan
+            \App\Models\M_XenditPayment::create([
+                'external_id' => $external_id,
+                'id_pemesanan' => $pemesanan->id_pemesanan,
+                'payment_id' => $result['id'], // ID dari Xendit
+                'status' => $result['status'], // PENDING
+                'amount' => $result['amount'],
+                'currency' => $result['currency'],
+                'raw_response' => json_encode($result)
+            ]);
+
             return redirect($result['invoice_url']);
 
         } catch (\Xendit\XenditSdkException $e) {
@@ -120,6 +131,14 @@ class C_Xendit extends Controller
              M_Pembayaran::where('id_pemesanan', $id_pemesanan)
                  ->latest()
                  ->update(['status_bayar' => 'terverifikasi']);
+
+             // [NEW] Update status di tabel XenditPayment
+             \App\Models\M_XenditPayment::where('id_pemesanan', $id_pemesanan)
+                 ->latest()
+                 ->update([
+                     'status' => 'PAID',
+                     'paid_at' => now()
+                 ]);
         }
 
         return redirect()->route('my_bookings')->with('success', 'Pembayaran berhasil! Terima kasih.');

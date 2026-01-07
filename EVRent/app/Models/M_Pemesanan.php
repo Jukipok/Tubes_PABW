@@ -31,4 +31,9 @@ class M_Pemesanan extends Model
     {
         return $this->hasOne(M_Denda::class, 'id_pemesanan');
     }
+
+    public function xenditPayment()
+    {
+        return $this->hasOne(M_XenditPayment::class, 'id_pemesanan');
+    }
 }
