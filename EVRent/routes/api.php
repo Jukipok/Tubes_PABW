@@ -61,4 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ulasan', [LaporanApiController::class, 'store']);
     Route::get('/ulasan', [LaporanApiController::class, 'index']); // Can be public too if needed
 
+    // Lapor Masalah (Complaints)
+    Route::post('/laporan', [LaporanApiController::class, 'storeComplaint']); 
+    Route::get('/admin/laporan', [LaporanApiController::class, 'adminComplaints']);
+    Route::get('/owner/laporan', [LaporanApiController::class, 'ownerComplaints']);
+
 });

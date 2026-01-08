@@ -281,4 +281,98 @@ class C_Transaksi extends Controller
         $payments = \App\Modules\Pembayaran\Models\M_XenditPayment::orderBy('created_at', 'desc')->get();
         return view('admin.laporan.xendit', compact('payments'));
     }
+
+    // Owner Dashboard with Stats
+    public function ownerDashboard()
+    {
+        $user = Auth::user();
+
+        // 1. Get Owner Data
+        $pemilik = \App\Modules\Auth\Models\M_PemilikRental::where('id_user', $user->id)->first();
+        
+        if (!$pemilik) {
+            // Should not happen if middleware works, but safety check
+            return redirect()->route('home')->with('error', 'Profile Pemilik tidak ditemukan.');
+        }
+
+        // 2. Query Owner's Vehicles IDs
+        $vehicleIds = M_KendaraanListrik::where('id_pemilik_rental', $pemilik->id_pemilik_rental)
+            ->pluck('id_kendaraan');
+
+        // 3. Calculate Total Revenue (Lifetime)
+        $totalPendapatan = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
+            ->whereIn('status_sewa', ['dibayar', 'selesai'])
+            ->sum('total_biaya');
+
+        // 4. Calculate Active Rentals
+        $transaksiAktif = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
+            ->whereIn('status_sewa', ['menunggu_pembayaran', 'dibayar', 'disewa', 'berlangsung'])
+            ->count();
+
+        // 5. Monthly Revenue for Chart (Last 6 Months)
+        $monthlyStats = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
+            ->whereIn('status_sewa', ['dibayar', 'selesai'])
+            ->where('created_at', '>=', Carbon::now()->subMonths(6))
+            ->selectRaw('DATE_FORMAT(tanggal_sewa, "%Y-%m") as month, SUM(total_biaya) as total')
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->get();
+
+        // Prepare labels and data for Chart.js
+        $labels = [];
+        $revenueData = [];
+        
+        // Fill valid months
+        for ($i = 5; $i >= 0; $i--) {
+            $date = Carbon::now()->subMonths($i);
+            $monthKey = $date->format('Y-m');
+            $labels[] = $date->format('M Y');
+            
+            // Find data for this month
+            $stat = $monthlyStats->firstWhere('month', $monthKey);
+            $revenueData[] = $stat ? $stat->total : 0;
+        }
+
+        return view('dashboard.owner', compact('totalPendapatan', 'transaksiAktif', 'labels', 'revenueData'));
+    }
+
+    // Owner Financial Report Page
+    public function ownerFinancialReport()
+    {
+        $user = Auth::user();
+        $pemilik = \App\Modules\Auth\Models\M_PemilikRental::where('id_user', $user->id)->first();
+
+        if (!$pemilik) {
+            return redirect()->route('home')->with('error', 'Profile Pemilik tidak ditemukan.');
+        }
+
+        $vehicleIds = M_KendaraanListrik::where('id_pemilik_rental', $pemilik->id_pemilik_rental)
+            ->pluck('id_kendaraan');
+
+        $transactions = M_Pemesanan::with(['pelanggan.user', 'kendaraan'])
+            ->whereIn('id_kendaraan', $vehicleIds)
+            ->whereIn('status_sewa', ['dibayar', 'selesai', 'menunggu_pembayaran']) // Filter relevant statuses
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.owner_financial', compact('transactions'));
+    }
+
+    // Owner Reviews Page
+    public function ownerReviews()
+    {
+        $user = Auth::user();
+        $pemilik = \App\Modules\Auth\Models\M_PemilikRental::where('id_user', $user->id)->first();
+
+        if (!$pemilik) {
+            return redirect()->route('home')->with('error', 'Profile Pemilik tidak ditemukan.');
+        }
+
+        $reviews = \App\Modules\Laporan\Models\M_Ulasan::with(['pelanggan.user'])
+            ->where('id_pemilik_rental', $pemilik->id_pemilik_rental)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.owner_reviews', compact('reviews'));
+    }
 }

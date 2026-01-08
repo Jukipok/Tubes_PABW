@@ -53,7 +53,12 @@
                 </li>
                 <li>
                     <a href="{{ route('admin.laporan.xendit') }}" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-blue-600 font-medium">
-                        Laporan Transaksi Xendit
+                        Laporan Pembayaran
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.laporan.masalah') }}" class="block px-4 py-2 border rounded-md hover:bg-gray-50 text-red-600 font-medium">
+                        Laporan Masalah Pengguna
                     </a>
                 </li>
             </ul>

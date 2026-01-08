@@ -4,6 +4,7 @@ namespace App\Modules\Kendaraan\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Modules\Kendaraan\Models\M_KendaraanListrik;
 
 class KendaraanApiController extends Controller
@@ -63,7 +64,7 @@ class KendaraanApiController extends Controller
             'jenis' => 'required|in:mobil,motor,sepeda',
             'plat_nomor' => 'required|unique:kendaraan_listriks',
             'harga_perjam' => 'required|numeric',
-            // id_pemilik_rental needed if admin, or auto-set if owner
+            'gambar' => 'nullable|image|max:2048', // Max 2MB
         ]);
 
         // Logic to determining owner id could be complex based on auth, for now simple:
@@ -77,6 +78,11 @@ class KendaraanApiController extends Controller
         
         if (!$id_pemilik) { return response()->json(['message' => 'Owner ID required'], 400); }
 
+        $path = null;
+        if ($request->hasFile('gambar')) {
+            $path = $request->file('gambar')->store('kendaraan', 'public');
+        }
+
         $kendaraan = M_KendaraanListrik::create([
             'merk_kendaraan' => $request->merk_kendaraan,
             'tipe_kendaraan' => $request->tipe_kendaraan,
@@ -84,7 +90,7 @@ class KendaraanApiController extends Controller
             'plat_nomor' => $request->plat_nomor,
             'harga_perjam' => $request->harga_perjam,
             'status_ketersediaan' => 'tersedia',
-            'foto_url' => $request->foto_url ?? null, // Optional
+            'gambar' => $path,
             'id_pemilik_rental' => $id_pemilik
         ]);
 
@@ -110,9 +116,20 @@ class KendaraanApiController extends Controller
              }
         }
 
-        $kendaraan->update($request->only([
-            'merk_kendaraan', 'tipe_kendaraan', 'jenis', 'harga_perjam', 'status_ketersediaan', 'foto_url'
+        $kendaraan->fill($request->only([
+            'merk_kendaraan', 'tipe_kendaraan', 'jenis', 'harga_perjam', 'status_ketersediaan'
         ]));
+
+        if ($request->hasFile('gambar')) {
+            // Delete old image
+            if ($kendaraan->gambar && Storage::disk('public')->exists($kendaraan->gambar)) {
+                Storage::disk('public')->delete($kendaraan->gambar);
+            }
+            $path = $request->file('gambar')->store('kendaraan', 'public');
+            $kendaraan->gambar = $path;
+        }
+
+        $kendaraan->save();
 
         return response()->json(['message' => 'Vehicle updated', 'data' => $kendaraan]);
     }

@@ -50,4 +50,33 @@ class C_Laporan extends Controller
 
         return redirect()->route('my_bookings')->with('success', 'Laporan Anda berhasil dikirim dan akan segera diproses.');
     }
+
+    // Admin: List all complaints
+    public function adminReports()
+    {
+        $reports = M_Laporan::with(['pemesanan.pelanggan.user', 'pemesanan.kendaraan.pemilik'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return view('admin.laporan.masalah', compact('reports'));
+    }
+
+    // Owner: List complaints for their vehicles
+    public function ownerReports()
+    {
+        $user = Auth::user();
+        $pemilik = \App\Modules\Auth\Models\M_PemilikRental::where('id_user', $user->id)->first();
+
+        if (!$pemilik) {
+             return redirect()->route('home')->with('error', 'Profile Pemilik tidak ditemukan.');
+        }
+
+        $reports = M_Laporan::with(['pemesanan.pelanggan.user', 'pemesanan.kendaraan'])
+            ->whereHas('pemesanan.kendaraan', function($q) use ($pemilik) {
+                $q->where('id_pemilik_rental', $pemilik->id_pemilik_rental);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('dashboard.owner_complaints', compact('reports'));
+    }
 }
