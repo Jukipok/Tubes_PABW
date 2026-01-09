@@ -11,12 +11,10 @@ use Illuminate\Support\Facades\Auth;
 
 class C_Laporan extends Controller
 {
-    // Show Report Form
     public function create($id_pemesanan)
     {
         $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
         
-        // Ensure user owns this booking
         $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
         if ($pemesanan->id_pelanggan !== $pelanggan->id_pelanggan) {
             return back()->with('error', 'Unauthorized.');
@@ -25,7 +23,6 @@ class C_Laporan extends Controller
         return view('laporan.create', compact('pemesanan'));
     }
 
-    // Store Report
     public function store(Request $request)
     {
         $request->validate([
@@ -51,7 +48,6 @@ class C_Laporan extends Controller
         return redirect()->route('my_bookings')->with('success', 'Laporan Anda berhasil dikirim dan akan segera diproses.');
     }
 
-    // Admin: List all complaints
     public function adminReports()
     {
         $reports = M_Laporan::with(['pemesanan.pelanggan.user', 'pemesanan.kendaraan.pemilik'])
@@ -60,7 +56,6 @@ class C_Laporan extends Controller
         return view('admin.laporan.masalah', compact('reports'));
     }
 
-    // Owner: List complaints for their vehicles
     public function ownerReports()
     {
         $user = Auth::user();

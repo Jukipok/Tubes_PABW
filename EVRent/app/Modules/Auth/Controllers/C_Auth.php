@@ -24,7 +24,7 @@ class C_Auth extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'username' => 'required', // Can be username or email
+            'username' => 'required',
             'password' => 'required',
         ]);
 
@@ -35,7 +35,6 @@ class C_Auth extends Controller
 
             $user = Auth::user();
             
-            // Redirect based on role
             switch ($user->role) {
                 case 'admin_evrent':
                 case 'admin_sewa':
@@ -64,19 +63,18 @@ class C_Auth extends Controller
         ]);
 
         $user = M_User::create([
-            'name' => $request->nama_lengkap, // Map nama_lengkap to required 'name' field
+            'name' => $request->nama_lengkap,
             'nama_lengkap' => $request->nama_lengkap,
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'no_telepon' => $request->no_telepon,
             'alamat' => $request->alamat,
-            'role' => 'pelanggan', // Default role for public registration
+            'role' => 'pelanggan',
         ]);
 
-        // Create Pelanggan entry
         M_Pelanggan::create([
-            'id_user' => $user->id // CAREFUL: accessing id instead of id_user if I didn't map it properly. M_User uses 'users' table which has 'id'. Eloquent returns 'id'.
+            'id_user' => $user->id
         ]);
 
         Auth::login($user);

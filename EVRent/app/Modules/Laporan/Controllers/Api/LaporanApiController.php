@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Auth;
 
 class LaporanApiController extends Controller
 {
-    // Submit Review
     public function store(Request $request)
     {
         $request->validate([
@@ -30,20 +29,7 @@ class LaporanApiController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Check exists based on customer and rental (since id_pemesanan is dropped)
-        // Or if we want to allow multiple reviews, we can skip check.
-        // For now, let's limit 1 review per customer for a rental? Or just allow all.
-        // If we strictly follow error "Unknown column id_pemesanan", we MUST remove it from queries.
-        
-        /* 
-        $exists = M_Ulasan::where('id_pelanggan', $pelanggan->id_pelanggan)
-            ->where('id_pemilik_rental', $request->id_pemilik_rental)
-            ->exists(); 
-            
-        if ($exists) {
-             // return response()->json(['message' => 'Already reviewed this rental'], 400);
-        }
-        */
+
 
         $ulasan = M_Ulasan::create([
             'id_pemilik_rental' => $request->id_pemilik_rental,
@@ -58,7 +44,6 @@ class LaporanApiController extends Controller
         ], 201);
     }
     
-    // List Reviews
     public function index(Request $request) 
     {
         $query = M_Ulasan::with('pelanggan.user');
@@ -74,9 +59,6 @@ class LaporanApiController extends Controller
         ]);
     }
 
-    // --- Complaint / Lapor Masalah APIs ---
-
-    // Store Complaint
     public function storeComplaint(Request $request)
     {
         $request->validate([
@@ -113,10 +95,8 @@ class LaporanApiController extends Controller
         ], 201);
     }
 
-    // Admin: List All Complaints
     public function adminComplaints()
     {
-        // Ensure user is admin (this check usually done by middleware, but good to have safety)
         if (!Auth::user()->hasRole(['admin_evrent', 'admin_sewa'])) {
              return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -128,7 +108,6 @@ class LaporanApiController extends Controller
         return response()->json(['data' => $reports]);
     }
 
-    // Owner: List My Complaints
     public function ownerComplaints()
     {
         $user = Auth::user();

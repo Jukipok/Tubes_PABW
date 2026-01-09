@@ -17,7 +17,7 @@ class M_Pelanggan extends Model
         return $this->belongsTo(M_User::class, 'id_user');
     }
 
-    public function pemesanan() // UML says 1..*
+    public function pemesanan()
     {
         return $this->hasMany(M_Pemesanan::class, 'id_pelanggan');
     }

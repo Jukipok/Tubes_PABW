@@ -12,7 +12,7 @@ class M_Pemesanan extends Model
     protected $primaryKey = 'id_pemesanan';
     protected $guarded = ['id_pemesanan'];
 
-    // Relationships
+
     public function pelanggan()
     {
         return $this->belongsTo(\App\Modules\Auth\Models\M_Pelanggan::class, 'id_pelanggan');

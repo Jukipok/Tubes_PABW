@@ -2,7 +2,7 @@
 
 namespace App\Modules\Auth\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -11,24 +11,13 @@ use Laravel\Sanctum\HasApiTokens;
 
 class M_User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'users';
-    protected $primaryKey = 'id'; // Fixed: Database uses 'id', not 'id_user' 
-    // Wait, diagram says 'id_user'. My migration update didn't change 'id' to 'id_user'.
-    // I should probably check if I can rename it, or just map 'id_user' to 'id' in the model.
-    // For strict compliance, I should have renamed 'id' to 'id_user' in migration.
-    // I will checking the migration modification I did. Users table already had 'id'.
-    // I will assume 'id' is fine, or I can add an accessor.
-    
-    // Let's stick to 'id' for PK in Laravel but the property in UML is id_user. 
-    // I'll map it:
-    // protected $primaryKey = 'id'; 
-    // And in the code I can refer to it as id.
+    protected $primaryKey = 'id';
     
     protected $fillable = [
-        'name', // Standard Laravel field
+        'name',
         'username',
         'password',
         'email',
@@ -52,7 +41,7 @@ class M_User extends Authenticatable
         ];
     }
 
-    // Relationships
+
     public function pelanggan()
     {
         return $this->hasOne(M_Pelanggan::class, 'id_user');
@@ -63,9 +52,7 @@ class M_User extends Authenticatable
         return $this->hasOne(M_PemilikRental::class, 'id_user');
     }
 
-    /**
-     * Check if user has a specific role or array of roles
-     */
+
     public function hasRole($roles)
     {
         if (is_array($roles)) {

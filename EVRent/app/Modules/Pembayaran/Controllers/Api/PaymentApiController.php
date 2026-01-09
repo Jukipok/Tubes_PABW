@@ -23,10 +23,6 @@ class PaymentApiController extends Controller
         $this->apiInstance = new InvoiceApi();
     }
 
-    /**
-     * Create Invoice API
-     * POST /api/payment/create-invoice
-     */
     public function createInvoice(Request $request)
     {
         $request->validate([
@@ -40,12 +36,10 @@ class PaymentApiController extends Controller
             return response()->json(['message' => 'Booking not found'], 404);
         }
 
-        // Authorization check: User must own the booking
         if ($request->user()->id !== $pemesanan->pelanggan->user->id) {
              return response()->json(['message' => 'Unauthorized access to this booking'], 403);
         }
 
-        // Check if already paid
         if ($pemesanan->status_sewa === 'dibayar') {
             return response()->json(['message' => 'Booking already paid'], 400);
         }
@@ -53,8 +47,6 @@ class PaymentApiController extends Controller
         try {
             $external_id = 'booking_' . $pemesanan->id_pemesanan . '_' . Str::random(5);
             
-            // Format phone number
-            $mobile_number = $pemesanan->pelanggan->user->no_hp ?? null;
             if ($mobile_number) {
                  $mobile_number = preg_replace('/[^0-9]/', '', $mobile_number);
                  if (substr($mobile_number, 0, 1) === '0') $mobile_number = '+62' . substr($mobile_number, 1);
@@ -72,16 +64,15 @@ class PaymentApiController extends Controller
                 'external_id' => $external_id,
                 'description' => "Sewa Kendaraan " . $pemesanan->kendaraan->merk_kendaraan . " (" . $pemesanan->durasi_sewa . " Jam)",
                 'amount' => (float) $pemesanan->total_biaya,
-                'invoice_duration' => 172800, // 48 hours
+                'invoice_duration' => 172800,
                 'currency' => 'IDR',
                 'customer' => $customerData,
-                'success_redirect_url' => $request->input('success_redirect_url'), // Mobile app custom scheme
+                'success_redirect_url' => $request->input('success_redirect_url'),
                 'failure_redirect_url' => $request->input('failure_redirect_url'),
             ]);
 
             $result = $this->apiInstance->createInvoice($create_invoice_request);
 
-            // Save basic payment info
             M_Pembayaran::create([
                 'id_pemesanan' => $pemesanan->id_pemesanan,
                 'metode_pembayaran' => 'xendit_invoice',
@@ -91,7 +82,6 @@ class PaymentApiController extends Controller
                 'tanggal_bayar' => now(),
             ]);
 
-            // Save Xendit specific info
             M_XenditPayment::create([
                 'external_id' => $external_id,
                 'id_pemesanan' => $pemesanan->id_pemesanan,

@@ -11,11 +11,8 @@ use App\Modules\Auth\Models\M_Pelanggan;
 use App\Modules\Pembayaran\Models\M_Denda;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-// imported models
-
 class C_Transaksi extends Controller
 {
-    // Show Booking Form
     public function create($id_kendaraan)
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id_kendaraan);
@@ -23,7 +20,6 @@ class C_Transaksi extends Controller
         return view('transaksi.booking', compact('kendaraan'));
     }
 
-    // Process Booking (Simpan Pemesanan)
     public function store(Request $request)
     {
         $request->validate([
@@ -38,8 +34,7 @@ class C_Transaksi extends Controller
         $tanggal_sewa = Carbon::parse($request->tanggal_sewa);
         $tanggal_kembali = $tanggal_sewa->copy()->addHours((int) $request->durasi_sewa);
 
-        // Get Pelanggan ID from Auth User
-        $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first(); // Auth::id() is PK of users table. id_user in pelanggans is FK.
+        $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
 
         if (!$pelanggan) {
             return redirect()->back()->with('error', 'Profile Pelanggan tidak ditemukan.');
@@ -55,21 +50,17 @@ class C_Transaksi extends Controller
             'status_sewa' => 'menunggu_pembayaran',
         ]);
 
-        // Update Vehicle Status
         $kendaraan->update(['status_ketersediaan' => 'disewa']);
 
-        // Redirect directly to Xendit Payment
         return redirect()->route('payment.create', ['id' => $pemesanan->id_pemesanan]);
     }
 
-    // Show Payment Form
     public function createPayment($id_pemesanan)
     {
         $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
         return view('transaksi.payment', compact('pemesanan'));
     }
 
-    // Process Payment
     public function processPayment(Request $request, $id_pemesanan)
     {
         $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
@@ -90,12 +81,11 @@ class C_Transaksi extends Controller
             'status_bayar' => 'menunggu_verifikasi',
         ]);
 
-        $pemesanan->update(['status_sewa' => 'dibayar']); // Or 'menunggu_verifikasi' if strict
+        $pemesanan->update(['status_sewa' => 'dibayar']);
 
         return redirect()->route('katalog')->with('success', 'Pembayaran berhasil dikirim. Menunggu verifikasi.');
     }
 
-    // Booking History
     public function history()
     {
         $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
@@ -112,7 +102,6 @@ class C_Transaksi extends Controller
         return view('transaksi.history', compact('pemesanans'));
     }
 
-    // Admin: list pending payments
     public function adminPayments()
     {
         $payments = M_Pembayaran::with(['pemesanan.pelanggan.user', 'pemesanan.kendaraan'])
@@ -123,17 +112,14 @@ class C_Transaksi extends Controller
         return view('admin.pembayaran.index', compact('payments'));
     }
 
-    // Admin: verify a payment
     public function verifyPayment(Request $request, $id_pembayaran)
     {
         $payment = M_Pembayaran::findOrFail($id_pembayaran);
 
-        // Simple verification logic: mark payment as verified and update order status
         $payment->update([
             'status_bayar' => 'terverifikasi'
         ]);
 
-        // Update pemesanan status to dibayar
         if ($payment->pemesanan) {
             $payment->pemesanan->update(['status_sewa' => 'dibayar']);
         }
@@ -141,35 +127,28 @@ class C_Transaksi extends Controller
         return redirect()->route('admin.pembayaran.index')->with('success', 'Pembayaran telah diverifikasi.');
     }
 
-    // Return Vehicle (Finish Rental)
     public function returnItem($id_pemesanan)
     {
         $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
         
-        // Ensure user owns this booking
         $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
         if ($pemesanan->id_pelanggan !== $pelanggan->id_pelanggan) {
             return back()->with('error', 'Unauthorized.');
         }
 
-        // Only allowed if status is 'dibayar' (active) or 'berlangsung'
         if (!in_array($pemesanan->status_sewa, ['dibayar', 'berlangsung'])) {
              return back()->with('error', 'Status pesanan tidak valid untuk pengembalian.');
         }
 
-        // Calculate Fine (Denda)
         $now = Carbon::now();
         $due = Carbon::parse($pemesanan->tanggal_kembali);
         $fineMessage = '';
 
         if ($now->greaterThan($due)) {
             $hoursLate = $now->diffInHours($due);
-            // If late less than an hour but passed time, count as 1 hour or use float? 
-            // Let's use ceil for hours
             $hoursLate = $now->floatDiffInHours($due);
-            $hoursLateCeil = ceil($hoursLate); // Minimum 1 hour if late
+            $hoursLateCeil = ceil($hoursLate);
             
-            // Logic: Fine = 2 * Price * Hours Late
             $kendaraan = M_KendaraanListrik::find($pemesanan->id_kendaraan);
             $pricePerHour = $kendaraan->harga_perjam;
             $fineAmount = $hoursLateCeil * $pricePerHour * 2;
@@ -184,10 +163,8 @@ class C_Transaksi extends Controller
             $fineMessage = ' Anda terlambat ' . $hoursLateCeil . ' jam. Denda: Rp ' . number_format($fineAmount);
         }
 
-        // Update Booking Status
         $pemesanan->update(['status_sewa' => 'selesai']);
 
-        // Update Vehicle Status back to Available
         $kendaraan = M_KendaraanListrik::find($pemesanan->id_kendaraan);
         if ($kendaraan) {
             $kendaraan->update(['status_ketersediaan' => 'tersedia']);
@@ -196,7 +173,6 @@ class C_Transaksi extends Controller
         return back()->with('success', 'Kendaraan berhasil dikembalikan.' . $fineMessage . ' Silakan beri ulasan Anda!');
     }
 
-    // Submit Review
     public function storeReview(Request $request)
     {
         $request->validate([
@@ -208,13 +184,11 @@ class C_Transaksi extends Controller
 
         $pemesanan = M_Pemesanan::findOrFail($request->id_pemesanan);
         
-        // Ensure user owns this booking
         $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
         if ($pemesanan->id_pelanggan !== $pelanggan->id_pelanggan) {
             return back()->with('error', 'Unauthorized.');
         }
 
-        // Check if customer already reviewed this rental
         $existingReview = \App\Modules\Laporan\Models\M_Ulasan::where('id_pemilik_rental', $request->id_pemilik_rental)
             ->where('id_pelanggan', $pelanggan->id_pelanggan)
             ->first();
@@ -233,23 +207,19 @@ class C_Transaksi extends Controller
         return back()->with('success', 'Terima kasih atas ulasan Anda!');
     }
 
-    // Delete Booking
     public function deleteBooking($id_pemesanan)
     {
         $pemesanan = M_Pemesanan::findOrFail($id_pemesanan);
         
-        // Ensure user owns this booking
         $pelanggan = M_Pelanggan::where('id_user', Auth::id())->first();
         if ($pemesanan->id_pelanggan !== $pelanggan->id_pelanggan) {
             return back()->with('error', 'Unauthorized.');
         }
 
-        // Only allow delete if status is menunggu_pembayaran or selesai
         if (!in_array($pemesanan->status_sewa, ['menunggu_pembayaran', 'selesai'])) {
             return back()->with('error', 'Pesanan ini tidak dapat dihapus.');
         }
 
-        // Update kendaraan status kembali ke tersedia jika masih disewa
         if ($pemesanan->kendaraan && $pemesanan->status_sewa == 'menunggu_pembayaran') {
             $pemesanan->kendaraan->update(['status_ketersediaan' => 'tersedia']);
         }
@@ -261,11 +231,9 @@ class C_Transaksi extends Controller
 
     public function calculateFine($id_pemesanan)
     {
-        // Logic to calculate fine if returned late
-        // For now, just a view or json
         return "Not implemented yet";
     }
-    // Admin: list all reviews
+
     public function adminReviews()
     {
         $reviews = \App\Modules\Laporan\Models\M_Ulasan::with(['pelanggan.user', 'pemilikRental'])
@@ -275,41 +243,33 @@ class C_Transaksi extends Controller
         return view('admin.ulasan.index', compact('reviews'));
     }
 
-    // Admin: Xendit Report
     public function xenditReport()
     {
         $payments = \App\Modules\Pembayaran\Models\M_XenditPayment::orderBy('created_at', 'desc')->get();
         return view('admin.laporan.xendit', compact('payments'));
     }
 
-    // Owner Dashboard with Stats
     public function ownerDashboard()
     {
         $user = Auth::user();
 
-        // 1. Get Owner Data
         $pemilik = \App\Modules\Auth\Models\M_PemilikRental::where('id_user', $user->id)->first();
         
         if (!$pemilik) {
-            // Should not happen if middleware works, but safety check
             return redirect()->route('home')->with('error', 'Profile Pemilik tidak ditemukan.');
         }
 
-        // 2. Query Owner's Vehicles IDs
         $vehicleIds = M_KendaraanListrik::where('id_pemilik_rental', $pemilik->id_pemilik_rental)
             ->pluck('id_kendaraan');
 
-        // 3. Calculate Total Revenue (Lifetime)
         $totalPendapatan = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
             ->whereIn('status_sewa', ['dibayar', 'selesai'])
             ->sum('total_biaya');
 
-        // 4. Calculate Active Rentals
         $transaksiAktif = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
             ->whereIn('status_sewa', ['menunggu_pembayaran', 'dibayar', 'disewa', 'berlangsung'])
             ->count();
 
-        // 5. Monthly Revenue for Chart (Last 6 Months)
         $monthlyStats = M_Pemesanan::whereIn('id_kendaraan', $vehicleIds)
             ->whereIn('status_sewa', ['dibayar', 'selesai'])
             ->where('created_at', '>=', Carbon::now()->subMonths(6))
@@ -318,17 +278,14 @@ class C_Transaksi extends Controller
             ->orderBy('month', 'asc')
             ->get();
 
-        // Prepare labels and data for Chart.js
         $labels = [];
         $revenueData = [];
         
-        // Fill valid months
         for ($i = 5; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
             $monthKey = $date->format('Y-m');
             $labels[] = $date->format('M Y');
             
-            // Find data for this month
             $stat = $monthlyStats->firstWhere('month', $monthKey);
             $revenueData[] = $stat ? $stat->total : 0;
         }
@@ -336,7 +293,6 @@ class C_Transaksi extends Controller
         return view('dashboard.owner', compact('totalPendapatan', 'transaksiAktif', 'labels', 'revenueData'));
     }
 
-    // Owner Financial Report Page
     public function ownerFinancialReport()
     {
         $user = Auth::user();
@@ -351,14 +307,13 @@ class C_Transaksi extends Controller
 
         $transactions = M_Pemesanan::with(['pelanggan.user', 'kendaraan'])
             ->whereIn('id_kendaraan', $vehicleIds)
-            ->whereIn('status_sewa', ['dibayar', 'selesai', 'menunggu_pembayaran']) // Filter relevant statuses
+            ->whereIn('status_sewa', ['dibayar', 'selesai', 'menunggu_pembayaran'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         return view('dashboard.owner_financial', compact('transactions'));
     }
 
-    // Owner Reviews Page
     public function ownerReviews()
     {
         $user = Auth::user();

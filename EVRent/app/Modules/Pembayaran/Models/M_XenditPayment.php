@@ -25,9 +25,6 @@ class M_XenditPayment extends Model
         'raw_response',
     ];
 
-    /**
-     * Get the pemesanan that owns the payment.
-     */
     public function pemesanan()
     {
         return $this->belongsTo(M_Pemesanan::class, 'id_pemesanan');

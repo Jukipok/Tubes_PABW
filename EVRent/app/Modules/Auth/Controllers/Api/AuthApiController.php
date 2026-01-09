@@ -11,7 +11,6 @@ use App\Modules\Auth\Models\M_Pelanggan;
 
 class AuthApiController extends Controller
 {
-    // Register
     public function register(Request $request)
     {
         $request->validate([
@@ -48,7 +47,6 @@ class AuthApiController extends Controller
         ], 201);
     }
 
-    // Login
     public function login(Request $request)
     {
         $request->validate([
@@ -75,10 +73,8 @@ class AuthApiController extends Controller
         ]);
     }
 
-    // Logout
     public function logout(Request $request)
     {
-        // Revoke the token that was used to authenticate the current request
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
@@ -86,7 +82,6 @@ class AuthApiController extends Controller
         ]);
     }
 
-    // User Profile
     public function userProfile(Request $request)
     {
         $user = $request->user();
@@ -100,7 +95,6 @@ class AuthApiController extends Controller
         return response()->json($user);
     }
 
-    // Update Profile
     public function updateProfile(Request $request)
     {
         $user = $request->user();

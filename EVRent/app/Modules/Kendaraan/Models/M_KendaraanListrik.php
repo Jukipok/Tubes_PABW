@@ -13,7 +13,7 @@ class M_KendaraanListrik extends Model
     protected $guarded = ['id_kendaraan'];
 
     protected $casts = [
-        'gambar_kendaraan' => 'array', // If multiple images
+        'gambar_kendaraan' => 'array',
     ];
 
     public function pemilik()

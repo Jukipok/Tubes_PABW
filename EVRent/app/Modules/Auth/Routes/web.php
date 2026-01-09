@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Modules\Auth\Controllers\C_Auth;
 
-// Auth Routes
+
 Route::get('/login', [C_Auth::class, 'viewLogin'])->name('login');
 Route::post('/login', [C_Auth::class, 'login'])->name('login.post');
 Route::get('/register', [C_Auth::class, 'viewRegister'])->name('register');

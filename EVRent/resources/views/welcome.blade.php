@@ -117,11 +117,9 @@
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
     <script>
-        // Initialize Map
         const map = L.map('map', {zoomControl: false}).setView([-6.2088, 106.8456], 13);
         
-        // Custom Tiles (CartoDB Light for consistent look, or OSM if preferred)
-        // User snippet used OSM, so let's use that for "friend's source" compatibility
+
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 19
@@ -129,7 +127,6 @@
 
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        // PHP Data to JS
         const locations = [
             @if(isset($locations))
                 @foreach($locations as $loc)
@@ -144,12 +141,10 @@
             @endif
         ];
 
-        // Add Markers
         locations.forEach(loc => {
             const marker = L.marker([loc.lat, loc.lng]).addTo(map);
             
-            // Interaction logic from friend's snippet
-            marker.on('click', function() {
+            const marker = L.marker([loc.lat, loc.lng]).addTo(map);
                 Swal.fire({
                     title: loc.name,
                     text: "Alamat: " + loc.address,
@@ -160,14 +155,12 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        // Redirect to catalog or booking page
                         window.location.href = "{{ url('/katalog') }}";
                     }
                 });
             });
         });
 
-        // User Location Logic
         function locateUser() {
             if (!navigator.geolocation) {
                 alert("Geolocation tidak didukung browser ini.");

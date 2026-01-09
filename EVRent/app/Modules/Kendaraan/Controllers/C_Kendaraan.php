@@ -10,12 +10,9 @@ use Illuminate\Support\Facades\DB;
 
 class C_Kendaraan extends Controller
 {
-    // Display a listing of the resource.
     public function index(Request $request)
     {
-        // Search functionality
-        $selectedRental = null;
-        $kendaraans = collect(); // Default empty collection
+        $kendaraans = collect();
 
         if ($request->has('rental_id')) {
             $query = M_KendaraanListrik::query();
@@ -36,12 +33,10 @@ class C_Kendaraan extends Controller
             return response()->json($kendaraans);
         }
 
-        // Fetch Real Locations from DB
         $locations = \App\Modules\Auth\Models\M_PemilikRental::whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->get()
             ->map(function($rental) {
-                // Calculate Average Rating from Ulasan (now linked to PemilikRental)
                 $avgRating = \App\Modules\Laporan\Models\M_Ulasan::where('id_pemilik_rental', $rental->id_pemilik_rental)->avg('rating');
                 $reviewCount = \App\Modules\Laporan\Models\M_Ulasan::where('id_pemilik_rental', $rental->id_pemilik_rental)->count();
 
@@ -59,14 +54,11 @@ class C_Kendaraan extends Controller
         return view('kendaraan.katalog', compact('kendaraans', 'locations', 'selectedRental'));
     }
 
-    // Show the form for creating a new resource.
     public function create()
     {
-        // Verify role handled by middleware
         return view('kendaraan.manage', ['kendaraan' => null]); 
     }
 
-    // Store a newly created resource in storage.
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -91,7 +83,6 @@ class C_Kendaraan extends Controller
         return redirect()->route('manage.kendaraan')->with('success', 'Kendaraan berhasil ditambahkan.');
     }
 
-    // Display the specified resource.
     public function show($id)
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id);
@@ -103,14 +94,12 @@ class C_Kendaraan extends Controller
         return view('kendaraan.detail', compact('kendaraan'));
     }
 
-    // Show the form for editing the specified resource.
     public function edit($id)
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id);
         return view('kendaraan.manage', compact('kendaraan'));
     }
 
-    // Update the specified resource in storage.
     public function update(Request $request, $id)
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id);
@@ -125,7 +114,6 @@ class C_Kendaraan extends Controller
         ]);
 
         if ($request->hasFile('gambar_kendaraan')) {
-            // Delete old image
             if ($kendaraan->gambar_kendaraan) {
                 Storage::disk('public')->delete($kendaraan->gambar_kendaraan);
             }
@@ -142,7 +130,6 @@ class C_Kendaraan extends Controller
         return redirect()->route('manage.kendaraan')->with('success', 'Kendaraan berhasil diupdate.');
     }
 
-    // Remove the specified resource from storage.
     public function destroy($id)
     {
         $kendaraan = M_KendaraanListrik::findOrFail($id);
@@ -158,7 +145,6 @@ class C_Kendaraan extends Controller
         return redirect()->route('manage.kendaraan')->with('success', 'Kendaraan berhasil dihapus.');
     }
 
-    // Manage Page (Admin/Owner view)
     public function manage()
     {
         $kendaraans = M_KendaraanListrik::all();

@@ -3,20 +3,18 @@
 use Illuminate\Support\Facades\Route;
 use App\Modules\Kendaraan\Controllers\C_Kendaraan;
 
-// Public Home
+
 Route::get('/', [C_Kendaraan::class, 'index'])->name('home');
 
-use App\Modules\Transaksi\Controllers\C_Transaksi; // Import C_Transaksi
+use App\Modules\Transaksi\Controllers\C_Transaksi;
 
 Route::middleware(['auth'])->group(function () {
 
-    // Pelanggan Routes
     Route::middleware(['role:pelanggan'])->group(function () {
         Route::get('/katalog', [C_Kendaraan::class, 'index'])->name('katalog');
         Route::get('/lokasi', function () { return view('kendaraan.lokasi'); })->name('lokasi');
     });
 
-    // Admin & Owner Routes
     Route::middleware(['role:pemilik_rental,admin_evrent'])->group(function () {
         Route::get('/manage/kendaraan', [C_Kendaraan::class, 'manage'])->name('manage.kendaraan');
         Route::get('/manage/kendaraan/create', [C_Kendaraan::class, 'create'])->name('kendaraan.create');
