@@ -30,16 +30,24 @@ class LaporanApiController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Check exists
-        $exists = M_Ulasan::where('id_pemesanan', $request->id_pemesanan)->exists();
+        // Check exists based on customer and rental (since id_pemesanan is dropped)
+        // Or if we want to allow multiple reviews, we can skip check.
+        // For now, let's limit 1 review per customer for a rental? Or just allow all.
+        // If we strictly follow error "Unknown column id_pemesanan", we MUST remove it from queries.
+        
+        /* 
+        $exists = M_Ulasan::where('id_pelanggan', $pelanggan->id_pelanggan)
+            ->where('id_pemilik_rental', $request->id_pemilik_rental)
+            ->exists(); 
+            
         if ($exists) {
-             return response()->json(['message' => 'Already reviewed'], 400);
+             // return response()->json(['message' => 'Already reviewed this rental'], 400);
         }
+        */
 
         $ulasan = M_Ulasan::create([
             'id_pemilik_rental' => $request->id_pemilik_rental,
             'id_pelanggan' => $pelanggan->id_pelanggan,
-            // 'id_pemesanan' => $request->id_pemesanan, // Removed to avoid error if column missing
             'rating' => $request->rating,
             'komentar' => $request->komentar,
         ]);

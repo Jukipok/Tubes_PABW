@@ -44,7 +44,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/booking', [TransaksiApiController::class, 'store']);
     Route::get('/booking/history', [TransaksiApiController::class, 'history']);
     Route::get('/booking/{id}', [TransaksiApiController::class, 'show']);
+    Route::post('/booking/return/{id}', [TransaksiApiController::class, 'returnVehicle']); // Return Vehicle (Updated path)
+    Route::post('/booking/return/{id}', [TransaksiApiController::class, 'returnVehicle']); // Return Vehicle (Updated path)
     Route::delete('/booking/{id}', [TransaksiApiController::class, 'destroy']); // Cancel booking
+    Route::get('/owner/transaksi', [TransaksiApiController::class, 'ownerHistory']); // Owner Transaction History
 
     // Payment API
     Route::post('/payment/create-invoice', [PaymentApiController::class, 'createInvoice']);

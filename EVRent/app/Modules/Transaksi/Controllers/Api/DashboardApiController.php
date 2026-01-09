@@ -36,7 +36,7 @@ class DashboardApiController extends Controller
         $vehicleIds = M_KendaraanListrik::query();
         
         if ($user->role === 'pemilik_rental') {
-            $vehicleIds->where('id_pemilik_rental', $pemilik->id_pemilik);
+            $vehicleIds->where('id_pemilik_rental', $pemilik->id_pemilik_rental);
         }
         $vehicleIds = $vehicleIds->pluck('id_kendaraan');
 
@@ -56,7 +56,7 @@ class DashboardApiController extends Controller
 
         // 4. Jumlah Kendaraan
         $jumlahKendaraan = $user->role === 'pemilik_rental' 
-            ? M_KendaraanListrik::where('id_pemilik_rental', $pemilik->id_pemilik)->count()
+            ? M_KendaraanListrik::where('id_pemilik_rental', $pemilik->id_pemilik_rental)->count()
             : M_KendaraanListrik::count();
 
         return response()->json([

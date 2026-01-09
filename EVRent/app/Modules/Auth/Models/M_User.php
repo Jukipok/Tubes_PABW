@@ -62,4 +62,15 @@ class M_User extends Authenticatable
     {
         return $this->hasOne(M_PemilikRental::class, 'id_user');
     }
+
+    /**
+     * Check if user has a specific role or array of roles
+     */
+    public function hasRole($roles)
+    {
+        if (is_array($roles)) {
+            return in_array($this->role, $roles);
+        }
+        return $this->role === $roles;
+    }
 }
