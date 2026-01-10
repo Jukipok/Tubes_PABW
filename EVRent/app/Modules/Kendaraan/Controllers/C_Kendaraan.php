@@ -13,6 +13,7 @@ class C_Kendaraan extends Controller
     public function index(Request $request)
     {
         $kendaraans = collect();
+        $selectedRental = null;
 
         if ($request->has('rental_id')) {
             $query = M_KendaraanListrik::query();
